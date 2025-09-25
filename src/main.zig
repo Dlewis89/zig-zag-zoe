@@ -1,8 +1,8 @@
 const std = @import("std");
 
-const State = struct { turn: u8, board: [9]u8, game_over: bool };
+const State = struct { turn: u8, board: [9]u8, game_over: bool, winner: u8 };
 pub fn main() !void {
-    var state = State{ .turn = 1, .board = .{ '_', '_', '_', '_', '_', '_', '_', '_', '_' }, .game_over = false };
+    var state = State{ .turn = 1, .board = .{ '_', '_', '_', '_', '_', '_', '_', '_', '_' }, .game_over = false, .winner = '_' };
 
     var in_buffer: [1024]u8 = undefined;
     var stdin = std.fs.File.stdin().reader(&in_buffer);
@@ -10,6 +10,14 @@ pub fn main() !void {
 
     while (!state.game_over) {
         try print_board(state);
+
+        checkForHorizontallWins(&state);
+        checkForVerticalWins(&state);
+        checkForDiagonalWins(&state);
+
+        if (state.game_over) {
+            break;
+        }
 
         const input = try stdin_interface.takeDelimiterExclusive('\n');
 
@@ -19,7 +27,7 @@ pub fn main() !void {
         }
 
         const pos = std.fmt.parseInt(u8, input, 10) catch {
-            std.debug.print("Failed to parse input, please you a number between 0 and 8", .{});
+            std.log.err("Failed to parse input, please you a number between 0 and 8", .{});
             continue;
         };
 
@@ -27,6 +35,8 @@ pub fn main() !void {
 
         state.turn += 1;
     }
+
+    std.debug.print("Winner is {c}\n", .{state.winner});
 }
 
 fn print_board(state: State) !void {
@@ -56,5 +66,59 @@ fn player_input(state: *State, position: u8) void {
         else => {
             std.debug.print("Something went wrong with adding player symbol to board position!", .{});
         },
+    }
+}
+
+fn checkForHorizontallWins(state: *State) void {
+    if (state.board[0] == state.board[1] and state.board[0] == state.board[2] and state.board[0] != '_') {
+        state.winner = state.board[0];
+        state.game_over = true;
+        return;
+    }
+
+    if (state.board[3] == state.board[4] and state.board[3] == state.board[5] and state.board[3] != '_') {
+        state.winner = state.board[3];
+        state.game_over = true;
+        return;
+    }
+
+    if (state.board[6] == state.board[7] and state.board[6] == state.board[8] and state.board[6] != '_') {
+        state.winner = state.board[6];
+        state.game_over = true;
+        return;
+    }
+}
+
+fn checkForVerticalWins(state: *State) void {
+    if (state.board[0] == state.board[3] and state.board[0] == state.board[6] and state.board[0] != '_') {
+        state.winner = state.board[0];
+        state.game_over = true;
+        return;
+    }
+
+    if (state.board[1] == state.board[4] and state.board[1] == state.board[7] and state.board[1] != '_') {
+        state.winner = state.board[1];
+        state.game_over = true;
+        return;
+    }
+
+    if (state.board[2] == state.board[5] and state.board[2] == state.board[6] and state.board[2] != '_') {
+        state.winner = state.board[2];
+        state.game_over = true;
+        return;
+    }
+}
+
+fn checkForDiagonalWins(state: *State) void {
+    if (state.board[0] == state.board[4] and state.board[0] == state.board[7] and state.board[0] != '_') {
+        state.winner = state.board[0];
+        state.game_over = true;
+        return;
+    }
+
+    if (state.board[2] == state.board[4] and state.board[2] == state.board[6] and state.board[2] != '_') {
+        state.winner = state.board[3];
+        state.game_over = true;
+        return;
     }
 }
