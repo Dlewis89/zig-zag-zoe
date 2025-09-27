@@ -46,27 +46,16 @@ fn print_board(state: State) !void {
 
     var stdout_interface = &stdout_writer.interface;
 
-    try stdout_interface.print("| {c} | {c} | {c} | \n", .{ state.board[0], state.board[1], state.board[2] });
-    try stdout_interface.print("| {c} | {c} | {c} | \n", .{ state.board[3], state.board[4], state.board[5] });
-    try stdout_interface.print("| {c} | {c} | {c} | \n", .{ state.board[6], state.board[7], state.board[8] });
+    inline for (0..3) |row| {
+        try stdout_interface.print("| {c} | {c} | {c} | \n", .{ state.board[row * 3], state.board[row * 3 + 1], state.board[row * 3 + 2] });
+    }
 
     try stdout_interface.flush();
 }
 
 fn player_input(state: *State, position: u8) void {
-    const player = state.turn % 2;
-
-    switch (player) {
-        1 => {
-            state.board[position] = 'X';
-        },
-        0 => {
-            state.board[position] = 'O';
-        },
-        else => {
-            std.debug.print("Something went wrong with adding player symbol to board position!", .{});
-        },
-    }
+    const symbols = [2]u8{ 'O', 'X' };
+    state.board[position] = symbols[state.turn % 2];
 }
 
 fn checkForHorizontallWins(state: *State) void {
@@ -110,7 +99,7 @@ fn checkForVerticalWins(state: *State) void {
 }
 
 fn checkForDiagonalWins(state: *State) void {
-    if (state.board[0] == state.board[4] and state.board[0] == state.board[7] and state.board[0] != '_') {
+    if (state.board[0] == state.board[4] and state.board[0] == state.board[8] and state.board[0] != '_') {
         state.winner = state.board[0];
         state.game_over = true;
         return;
